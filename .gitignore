@@ -1,0 +1,14 @@
+# Data folder (contains personal notes, curriculum data, and uploads)
+data/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/

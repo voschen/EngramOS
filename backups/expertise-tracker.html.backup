@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expertise Tracker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f4f1;--bg3:#edecea;
+  --text:#1c1c1a;--text2:#5e5d58;--text3:#9e9c95;
+  --border:rgba(0,0,0,0.11);--border2:rgba(0,0,0,0.2);
+  --r:8px;--rl:12px;
+  --purple:#7F77DD;--pbg:#EEEDFE;--ptxt:#3C3489;
+  --teal:#1D9E75;--tbg:#E1F5EE;--ttxt:#085041;
+  --amber:#EF9F27;--abg:#FAEEDA;--atxt:#633806;
+  --red:#E24B4A;--rbg:#FCEBEB;--rtxt:#791F1F;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1d1d1b;--bg2:#262622;--bg3:#2f2f2b;
+    --text:#e6e4dd;--text2:#a6a49c;--text3:#6a6862;
+    --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+    --pbg:#26215C;--ptxt:#CECBF6;
+    --tbg:#04342C;--ttxt:#9FE1CB;
+    --abg:#412402;--atxt:#FAC775;
+    --rbg:#501313;--rtxt:#F7C1C1;
+  }
+}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.app{max-width:680px;margin:0 auto;padding:1.25rem 1rem 3rem;min-height:100vh}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;gap:10px}
+.nav-title{font-size:15px;font-weight:500;color:var(--text);flex:1}
+.btn-back{background:none;border:0.5px solid var(--border2);border-radius:var(--r);padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit}
+.btn-back:hover{background:var(--bg2)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;font-size:13px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);cursor:pointer;font-family:inherit;transition:background .1s}
+.btn:hover{background:var(--bg2)}
+.btn-p{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:500}
+.btn-p:hover{opacity:.85}
+.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-danger{color:var(--rtxt);border-color:var(--red)}
+.btn-danger:hover{background:var(--rbg)}
+
+.field-grid{display:grid;gap:8px}
+.field-card{border:0.5px solid var(--border);border-radius:var(--rl);padding:14px 16px;cursor:pointer;background:var(--bg);transition:background .1s}
+.field-card:hover{background:var(--bg2)}
+.fc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px}
+.fc-name{font-size:15px;font-weight:500;color:var(--text)}
+.fc-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.d-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.d-mixed{background:var(--abg);color:var(--atxt)}
+.d-theory{background:var(--pbg);color:var(--ptxt)}
+.d-skill{background:var(--tbg);color:var(--ttxt)}
+
+.prog-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.prog-lbl{font-size:11px;color:var(--text3);width:60px;flex-shrink:0}
+.prog-bg{flex:1;height:4px;border-radius:2px;background:var(--bg3);overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .3s}
+.pf-p{background:var(--purple)}
+.pf-t{background:var(--teal)}
+.pf-a{background:var(--amber)}
+.prog-pct{font-size:11px;color:var(--text3);width:30px;text-align:right;flex-shrink:0}
+
+.phase-block{border:0.5px solid var(--border);border-radius:var(--rl);margin-bottom:8px;overflow:hidden;background:var(--bg)}
+.phase-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg2);cursor:pointer;user-select:none;gap:10px}
+.phase-head:hover{background:var(--bg3)}
+.ph-l{display:flex;align-items:center;gap:10px}
+.ph-num{font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px;background:var(--bg);border:0.5px solid var(--border2);color:var(--text2);flex-shrink:0}
+.ph-name{font-size:13px;font-weight:500;color:var(--text)}
+.ph-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.ph-r{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.cap-b{font-size:10px;color:var(--text3);background:var(--bg);border:0.5px solid var(--border);border-radius:3px;padding:2px 6px}
+.st-b{font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px}
+.st-locked{background:var(--bg3);color:var(--text3)}
+.st-active{background:var(--abg);color:var(--atxt)}
+.st-done{background:var(--tbg);color:var(--ttxt)}
+.chev{font-size:10px;color:var(--text3);transition:transform .15s;display:inline-block}
+.chev.open{transform:rotate(180deg)}
+
+.phase-body{display:none;padding:10px 14px 14px}
+.phase-body.open{display:block}
+.phase-prog{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:var(--bg2);border-radius:var(--r)}
+.pp-bg{flex:1;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
+.pp-fill{height:100%;border-radius:3px;background:var(--amber);transition:width .3s}
+.pp-pct{font-size:12px;font-weight:500;color:var(--text);min-width:30px;text-align:right;flex-shrink:0}
+.pp-thr{font-size:10px;color:var(--text3);flex-shrink:0}
+
+.node-item{border:0.5px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:6px;background:var(--bg)}
+.node-item:last-child{margin-bottom:0}
+.ni-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px}
+.ni-name{font-size:13px;font-weight:500;color:var(--text)}
+.ni-bgs{display:flex;gap:4px;flex-shrink:0}
+.ax-b{font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px}
+.ax-t{background:var(--pbg);color:var(--ptxt)}
+.ax-s{background:var(--tbg);color:var(--ttxt)}
+.ax-m{background:var(--abg);color:var(--atxt)}
+.ni-desc{font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.45}
+.ni-bottom{display:flex;align-items:center;gap:10px}
+.ni-bars{flex:1}
+.sm-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.sm-lbl{font-size:10px;color:var(--text3);width:38px;flex-shrink:0}
+.sm-bg{flex:1;height:3px;border-radius:2px;background:var(--bg3);overflow:hidden}
+.sm-fill{height:100%;border-radius:2px}
+.sm-val{font-size:10px;color:var(--text3);width:26px;text-align:right;flex-shrink:0}
+.unassessed{font-size:11px;color:var(--text3);font-style:italic}
+.chal-note{font-size:11px;color:var(--text3);margin-top:7px;padding-top:7px;border-top:0.5px solid var(--border);line-height:1.45}
+
+.step-nav{display:flex;align-items:center;margin-bottom:1.5rem}
+.s-pip{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);flex:1}
+.s-pip.active{color:var(--text)}
+.s-pip.done{color:var(--teal)}
+.s-dot{width:20px;height:20px;border-radius:50%;border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;background:var(--bg);color:var(--text2)}
+.s-dot.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.s-dot.done{background:var(--tbg);color:var(--ttxt);border-color:var(--ttxt)}
+.s-line{height:0.5px;flex:1;background:var(--border);margin:0 5px}
+
+.a-header{background:var(--bg2);border-radius:var(--rl);padding:11px 14px;margin-bottom:1.25rem}
+.a-name{font-size:15px;font-weight:500;color:var(--text);margin-bottom:2px}
+.a-meta{font-size:11px;color:var(--text3)}
+
+.criterion{border:0.5px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:7px;background:var(--bg)}
+.crit-q{font-size:13px;color:var(--text);margin-bottom:8px}
+.crit-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.copt{border:0.5px solid var(--border);border-radius:var(--r);padding:7px 6px;font-size:11px;color:var(--text2);cursor:pointer;text-align:center;background:var(--bg);transition:background .1s;line-height:1.35;user-select:none}
+.copt:hover{background:var(--bg2)}
+.sel0{background:var(--rbg);border-color:var(--red);color:var(--rtxt)}
+.sel1{background:var(--abg);border-color:var(--amber);color:var(--atxt)}
+.sel2{background:var(--tbg);border-color:var(--teal);color:var(--ttxt)}
+.live-sc{padding:10px 12px;background:var(--bg2);border-radius:var(--r);margin:12px 0}
+
+.chal-card{border:0.5px solid var(--border);border-radius:var(--rl);padding:13px 14px;margin-bottom:10px;background:var(--bg)}
+.cc-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.cc-desc{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5}
+.f-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.f-lbl{font-size:12px;color:var(--text2);width:80px;flex-shrink:0}
+.r-group{display:flex;gap:5px}
+.ro{border:0.5px solid var(--border);border-radius:var(--r);padding:5px 11px;font-size:12px;cursor:pointer;color:var(--text2);background:var(--bg);user-select:none}
+.ro:hover{background:var(--bg2)}
+.ro-pass{background:var(--tbg);border-color:var(--teal);color:var(--ttxt)}
+.ro-over{background:var(--abg);border-color:var(--amber);color:var(--atxt)}
+.ro-fail{background:var(--rbg);border-color:var(--red);color:var(--rtxt)}
+.skip-note{font-size:11px;color:var(--text3)}
+
+.res-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem}
+.res-card{background:var(--bg2);border-radius:var(--r);padding:12px;text-align:center}
+.rc-n{font-size:26px;font-weight:500}
+.rc-l{font-size:11px;color:var(--text3);margin-top:2px}
+.verdict{border-radius:var(--r);padding:11px 13px;margin-bottom:8px;font-size:13px;line-height:1.55}
+.v-pass{background:var(--tbg);color:var(--ttxt)}
+.v-warn{background:var(--abg);color:var(--atxt)}
+.v-fail{background:var(--rbg);color:var(--rtxt)}
+.gap-card{border:0.5px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:5px;background:var(--bg)}
+.gc-t{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px}
+.gc-b{font-size:11px;color:var(--text2);line-height:1.5}
+.formula{font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5}
+
+.sc-row{display:flex;gap:8px;margin-bottom:1rem}
+.sc-row input{flex:1;padding:9px 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit}
+.sc-row input:focus{outline:none;border-color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.chip{font-size:12px;padding:4px 10px;border:0.5px solid var(--border2);border-radius:20px;cursor:pointer;color:var(--text2);background:var(--bg)}
+.chip:hover{background:var(--bg2)}
+.sc-status{font-size:12px;color:var(--text3);min-height:18px;margin-bottom:.75rem}
+.sr-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:3px}
+.sr-sub{font-size:12px;color:var(--text3);margin-bottom:.75rem}
+
+.form-group{margin-bottom:12px}
+.form-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-end}
+.form-row .form-group{margin-bottom:0;flex:1}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px}
+.form-input{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit}
+.form-input:focus{outline:none;border-color:var(--text)}
+.form-select{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;cursor:pointer}
+.form-section{padding:14px;border:0.5px solid var(--border);border-radius:var(--rl);margin-bottom:14px;background:var(--bg)}
+.form-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid var(--border2)}
+.fsh-title{font-size:14px;font-weight:500;color:var(--text)}
+.sub-node-section{padding:12px;border:0.5px dashed var(--border2);border-radius:var(--r);margin-bottom:10px;background:var(--bg2)}
+
+.actions{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;gap:8px}
+.empty{text-align:center;padding:3rem 1rem}
+.empty h3{font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px}
+.empty p{font-size:13px;color:var(--text3);margin-bottom:1.5rem}
+</style>
+</head>
+<body>
+<div class="app" id="app"><div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px">Loading...</div></div>
+
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const S={
+  view:'home',fieldId:null,nodeRef:null,
+  assessStep:0,
+  aScores:{t:[null,null,null,null,null],s:[null,null,null,null,null]},
+  challenge:null,
+  scaffoldResult:null,scaffolding:false,scaffoldMsg:'',
+  draftField: null,
+  data:{fields:[]}
+};
+
+// ── Util ──────────────────────────────────────────────────────────────────────
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const getField=id=>S.data.fields.find(f=>f.id===id);
+const getNode=(fid,pi,ni)=>getField(fid)?.phases[pi]?.nodes[ni];
+
+function phaseProgress(p){
+  const n=p.nodes||[];if(!n.length)return 0;
+  return Math.round(n.filter(x=>x.combined!==null&&x.combined>=5).length/n.length*100);
+}
+function isUnlocked(field,pi){
+  if(pi===0)return true;
+  const prev=field.phases[pi-1];
+  const pct=phaseProgress(prev);
+  const thr=prev.unlock_threshold||80;
+  const floor=(prev.nodes||[]).every(n=>n.combined===null||n.combined>=3);
+  return pct>=thr&&floor;
+}
+function phaseStatus(field,pi){
+  if(!isUnlocked(field,pi))return'locked';
+  const pct=phaseProgress(field.phases[pi]);
+  return pct>=(field.phases[pi].unlock_threshold||80)?'done':'active';
+}
+function calcScore(arr){
+  return Math.round(arr.reduce((a,b)=>a+(b||0),0)/(arr.length*2)*10);
+}
+const axCls=a=>a==='theory'?'ax-t':a==='skill'?'ax-s':'ax-m';
+const axLbl=a=>a==='theory'?'Theory':a==='skill'?'Skill':'Mixed';
+const domCls=d=>d==='theory'?'d-theory':d==='skill'?'d-skill':'d-mixed';
+const domLbl=d=>d==='theory'?'Theory-heavy':d==='skill'?'Skill-heavy':'Theory + Skill';
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+async function loadData(){
+  try{
+    if(window.storage){
+      const r=await window.storage.get('expertise-fields');
+      S.data.fields=JSON.parse(r.value);
+    }
+  }catch(e){S.data.fields=[];}
+}
+async function saveData(){
+  try{
+    if(window.storage)await window.storage.set('expertise-fields',JSON.stringify(S.data.fields));
+  }catch(e){}
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+function nav(view,opts={}){
+  S.view=view;
+  if(opts.fieldId!==undefined)S.fieldId=opts.fieldId;
+  if(opts.nodeRef!==undefined)S.nodeRef=opts.nodeRef;
+  if(view==='assess'){S.assessStep=0;S.aScores={t:[null,null,null,null,null],s:[null,null,null,null,null]};S.challenge=null;}
+  if(view==='add'){
+    S.scaffoldResult=null;
+    S.scaffoldMsg='';
+    S.draftField = {
+      field: '', domain: 'mixed', description: '',
+      phases: []
+    };
+  }
+  render();
+}
+
+// ── Import / Export ───────────────────────────────────────────────────────────
+function triggerImport() {
+  document.getElementById('import-file').click();
+}
+
+async function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    try {
+      const importedField = JSON.parse(event.target.result);
+      
+      // Basic validation
+      if (!importedField.field || !importedField.phases) {
+        throw new Error("Invalid field file format.");
+      }
+      
+      // Assign new IDs to avoid conflicts if importing a duplicate
+      importedField.id = uid();
+      if (importedField.phases) {
+        importedField.phases.forEach(p => {
+          if (p.nodes) {
+            p.nodes.forEach(n => {
+              n.id = uid();
+              // Reset scores on import? (Optional, but usually good to keep them if sharing progress, or strip them if sharing templates)
+              // We will keep them here.
+            });
+          }
+        });
+      }
+      
+      S.data.fields.push(importedField);
+      await saveData();
+      nav('home');
+      alert(`Successfully imported: ${importedField.field}`);
+    } catch (err) {
+      alert("Failed to import: " + err.message);
+    }
+    // clear input
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function exportField(fieldId) {
+  const field = getField(fieldId);
+  if (!field) return;
+  // Clone the object to avoid modifying the original during export prep (if needed)
+  const exportData = JSON.stringify(field, null, 2);
+  const blob = new Blob([exportData], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${field.field.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-curriculum.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Rubric data ───────────────────────────────────────────────────────────────
+const TC=[
+  {q:'Can you explain this from memory without notes?',o:['No / not yet','Roughly, with gaps','Clearly and fully']},
+  {q:'Can you handle edge-case questions?',o:['No, basics only','Some edge cases','Yes, including exceptions']},
+  {q:'Can you connect it to adjacent concepts?',o:['Isolated silo','1–2 connections','Multiple, fluent']},
+  {q:'Could you explain it to a complete beginner?',o:['Not yet','Roughly yes','Yes, clearly']},
+  {q:'Do you know when it applies and when it doesn\'t?',o:['Not sure','Mostly yes','Yes, confidently']}
+];
+const SC=[
+  {q:'Can you execute without looking anything up?',o:['No, need reference','Some lookup needed','Fully independent']},
+  {q:'Can you adapt to novel variants of the task?',o:['Only the exact pattern','Simple variants','Complex novel cases']},
+  {q:'Is your performance consistent, not hit-or-miss?',o:['Hit or miss','Mostly consistent','Reliably consistent']},
+  {q:'Can you perform under time pressure?',o:['No, need extra time','Slower than ideal','Within target time']},
+  {q:'Can you spot and fix errors in your own work?',o:['Miss many errors','Catch obvious ones','Catch subtle ones too']}
+];
+
+// ── Shared partials ───────────────────────────────────────────────────────────
+function renderBars(node){
+  if(node.combined===null)return`<span class="unassessed">Not assessed yet</span>`;
+  const t=node.theory_score??0,s=node.skill_score??0,c=node.combined??0;
+  return`<div class="sm-row"><span class="sm-lbl">Theory</span><div class="sm-bg"><div class="sm-fill" style="width:${t*10}%;background:#7F77DD"></div></div><span class="sm-val">${t}/10</span></div>
+<div class="sm-row"><span class="sm-lbl">Skill</span><div class="sm-bg"><div class="sm-fill" style="width:${s*10}%;background:#1D9E75"></div></div><span class="sm-val">${s}/10</span></div>
+<div class="sm-row"><span class="sm-lbl">Combined</span><div class="sm-bg"><div class="sm-fill" style="width:${c*10}%;background:#EF9F27"></div></div><span class="sm-val">${c.toFixed(1)}</span></div>`;
+}
+
+function renderPhaseNodes(p,pi,fieldId,unlocked){
+  return(p.nodes||[]).map((n,ni)=>`
+    <div class="node-item">
+      <div class="ni-top"><div class="ni-name">${n.name}</div><div class="ni-bgs"><span class="ax-b ${axCls(n.axis)}">${axLbl(n.axis)}</span></div></div>
+      <div class="ni-desc">${n.description}</div>
+      <div class="ni-bottom">
+        <div class="ni-bars">${renderBars(n)}</div>
+        <div>${unlocked
+          ?`<button class="btn btn-sm" onclick="nav('assess',{fieldId:'${fieldId}',nodeRef:{phaseIdx:${pi},nodeIdx:${ni}}})">${n.combined!==null?'Re-assess':'Assess'}</button>`
+          :`<span style="font-size:11px;color:var(--text3)">Locked</span>`}
+        </div>
+      </div>
+      ${n.challenge?`<div class="chal-note"><span style="font-weight:500;color:var(--text2)">Challenge (${n.challenge_time_min}min):</span> ${n.challenge}</div>`:''}
+    </div>`).join('');
+}
+
+function renderPhasesHTML(phases,fieldId,interactive){
+  return phases.map((p,pi)=>{
+    const field=getField(fieldId);
+    const status=field?phaseStatus(field,pi):'active';
+    const unlocked=field?isUnlocked(field,pi):true;
+    const prog=field?phaseProgress(p):0;
+    const open=pi===0||status==='active';
+    const stLbl={locked:'Locked',active:'Active',done:'Done'}[status];
+    const stCls={locked:'st-locked',active:'st-active',done:'st-done'}[status];
+    return`<div class="phase-block">
+      <div class="phase-head" onclick="togglePhase(${pi})">
+        <div class="ph-l">
+          <span class="ph-num">Phase ${p.phase}</span>
+          <div><div class="ph-name">${p.name}</div><div class="ph-sub">${p.duration_estimate} · ${(p.nodes||[]).length} nodes</div></div>
+        </div>
+        <div class="ph-r">
+          ${interactive?`<span class="st-b ${stCls}">${stLbl}</span>`:''}
+          <span class="cap-b">cap ${p.level_cap}</span>
+          <span class="chev${open?' open':''}" id="chev-${pi}">▾</span>
+        </div>
+      </div>
+      <div class="phase-body${open?' open':''}" id="pbody-${pi}">
+        ${interactive?`<div class="phase-prog">
+          <span style="font-size:11px;color:var(--text3);flex-shrink:0">Progress</span>
+          <div class="pp-bg"><div class="pp-fill" style="width:${prog}%"></div></div>
+          <span class="pp-pct">${prog}%</span>
+          <span class="pp-thr">/ ${p.unlock_threshold||80}% to unlock</span>
+        </div>`:''}
+        ${renderPhaseNodes(p,pi,fieldId,unlocked)}
+        ${interactive?`<div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.55">${p.focus||''}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── View: Home ────────────────────────────────────────────────────────────────
+function renderHome(){
+  const fields=S.data.fields;
+  if(!fields.length)return`
+    <div class="nav">
+      <span class="nav-title">Expertise tracker</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="triggerImport()">Import JSON</button>
+        <button class="btn btn-p btn-sm" onclick="nav('add')">+ Add field</button>
+      </div>
+    </div>
+    <div class="empty"><h3>No fields yet</h3><p>Create your first field or import one to get started.</p>
+    <div style="display:flex;justify-content:center;gap:10px">
+      <button class="btn" onclick="triggerImport()">Import a JSON field</button>
+      <button class="btn btn-p" onclick="nav('add')">+ Create new field</button>
+    </div>
+    </div>`;
+  const cards=fields.map(f=>{
+    const total=(f.phases||[]).reduce((a,p)=>a+(p.nodes||[]).length,0);
+    const done=(f.phases||[]).reduce((a,p)=>a+(p.nodes||[]).filter(n=>n.combined!==null&&n.combined>=5).length,0);
+    const pct=total?Math.round(done/total*100):0;
+    const cur=(f.phases||[]).findIndex((_,i)=>phaseStatus(f,i)==='active');
+    const ph=cur>=0?f.phases[cur]:f.phases[f.phases.length-1];
+    const phLbl=ph?`Phase ${ph.phase}: ${ph.name}`:'';
+    const assessed=(f.phases||[]).reduce((a,p)=>a+(p.nodes||[]).filter(n=>n.combined!==null).length,0);
+    return`<div class="field-card" onclick="nav('field',{fieldId:'${f.id}'})">
+      <div class="fc-top">
+        <div><div class="fc-name">${f.field}</div><div class="fc-meta">${phLbl} · ${assessed}/${total} assessed</div></div>
+        <span class="d-badge ${domCls(f.domain)}">${domLbl(f.domain)}</span>
+      </div>
+      <div class="prog-row"><span class="prog-lbl">Progress</span><div class="prog-bg"><div class="prog-fill pf-a" style="width:${pct}%"></div></div><span class="prog-pct">${pct}%</span></div>
+    </div>`;
+  }).join('');
+  return`<div class="nav">
+    <span class="nav-title">Expertise tracker</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="triggerImport()">Import JSON</button>
+      <button class="btn btn-p btn-sm" onclick="nav('add')">+ Add field</button>
+    </div>
+  </div>
+  <div class="field-grid">${cards}</div>`;
+}
+
+// ── View: Field ───────────────────────────────────────────────────────────────
+function renderField(){
+  const f=getField(S.fieldId);if(!f)return renderHome();
+  return`<div class="nav">
+    <button class="btn-back" onclick="nav('home')">← Back</button>
+    <span class="nav-title">${f.field}</span>
+    <span class="d-badge ${domCls(f.domain)}">${domLbl(f.domain)}</span>
+  </div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem;line-height:1.5">${f.description}</div>
+  ${renderPhasesHTML(f.phases,f.id,true)}
+  <div style="margin-top:12px;display:flex;justify-content:space-between">
+    <button class="btn btn-sm" onclick="exportField('${f.id}')">Export to JSON</button>
+    <button class="btn btn-sm btn-danger" onclick="deleteField('${f.id}')">Remove field</button>
+  </div>`;
+}
+
+function togglePhase(i){
+  const b=document.getElementById('pbody-'+i),c=document.getElementById('chev-'+i);
+  if(!b)return;
+  const o=b.classList.toggle('open');
+  if(c)c.classList.toggle('open',o);
+}
+
+async function deleteField(id){
+  if(!confirm('Remove this field and all its progress?'))return;
+  S.data.fields=S.data.fields.filter(f=>f.id!==id);
+  await saveData();nav('home');
+}
+
+// ── View: Assess ──────────────────────────────────────────────────────────────
+function renderAssess(){
+  const node=getNode(S.fieldId,S.nodeRef.phaseIdx,S.nodeRef.nodeIdx);
+  const field=getField(S.fieldId);
+  const phase=field?.phases[S.nodeRef.phaseIdx];
+  if(!node)return renderHome();
+
+  const steps=['Theory','Skill','Challenge','Results'];
+  const stepNav=`<div class="step-nav">${steps.map((s,i)=>{
+    const cls=i<S.assessStep?'done':i===S.assessStep?'active':'';
+    const dCls=i<S.assessStep?'done':i===S.assessStep?'active':'';
+    return`${i>0?'<div class="s-line"></div>':''}<div class="s-pip ${cls}"><div class="s-dot ${dCls}">${i<S.assessStep?'✓':i+1}</div><span>${s}</span></div>`;
+  }).join('')}</div>`;
+
+  const header=`<div class="a-header"><div class="a-name">${node.name}</div><div class="a-meta">${field.field} · Phase ${phase.phase}: ${phase.name}</div></div>`;
+
+  let body='';
+  const step=S.assessStep;
+
+  if(step===0){
+    const sc=calcScore(S.aScores.t);
+    body=`<div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:.75rem">Theory axis — what you know</div>
+      ${TC.map((c,i)=>`<div class="criterion"><div class="crit-q">${c.q}</div><div class="crit-opts">${c.o.map((o,v)=>`<div class="copt${S.aScores.t[i]===v?' sel'+v:''}" onclick="selC('t',${i},${v})">${o}</div>`).join('')}</div></div>`).join('')}
+      <div class="live-sc"><div class="prog-row"><span class="prog-lbl">Theory</span><div class="prog-bg"><div class="prog-fill pf-p" style="width:${sc*10}%"></div></div><span class="prog-pct">${sc}/10</span></div></div>
+      <div class="actions"><button class="btn btn-sm" onclick="nav('field',{fieldId:'${S.fieldId}'})">Cancel</button><button class="btn btn-p" onclick="stepA(1)">Next: Skill →</button></div>`;
+  } else if(step===1){
+    const sc=calcScore(S.aScores.s);
+    body=`<div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:.75rem">Skill axis — what you can do</div>
+      ${SC.map((c,i)=>`<div class="criterion"><div class="crit-q">${c.q}</div><div class="crit-opts">${c.o.map((o,v)=>`<div class="copt${S.aScores.s[i]===v?' sel'+v:''}" onclick="selC('s',${i},${v})">${o}</div>`).join('')}</div></div>`).join('')}
+      <div class="live-sc"><div class="prog-row"><span class="prog-lbl">Skill</span><div class="prog-bg"><div class="prog-fill pf-t" style="width:${sc*10}%"></div></div><span class="prog-pct">${sc}/10</span></div></div>
+      <div class="actions"><button class="btn btn-sm" onclick="stepA(0)">← Back</button><button class="btn btn-p" onclick="stepA(2)">Next: Challenge →</button></div>`;
+  } else if(step===2){
+    const ro=S.challenge;
+    body=`<div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:.75rem">Timed challenge — optional skill validator</div>
+      ${node.challenge?`<div class="chal-card">
+        <div class="cc-title">${node.challenge}</div>
+        <div class="cc-desc">Complete from memory in ${node.challenge_time_min} minutes. No notes or reference material.</div>
+        <div class="f-row"><span class="f-lbl">Outcome</span>
+          <div class="r-group">
+            <div class="ro${ro==='pass'?' ro-pass':''}" onclick="setC('pass')">Pass</div>
+            <div class="ro${ro==='over'?' ro-over':''}" onclick="setC('over')">Pass, over time</div>
+            <div class="ro${ro==='fail'?' ro-fail':''}" onclick="setC('fail')">Fail</div>
+          </div>
+        </div>
+      </div>
+      <div class="skip-note">${ro==='pass'?'+1 to skill score.':ro==='over'?'No modifier — passed but over time.':ro==='fail'?'−1 to skill score as calibration signal.':'Skip to leave skill score unchanged.'}</div>`
+      :`<div class="skip-note" style="margin-bottom:1rem">No challenge defined for this theory-only node.</div>`}
+      <div class="actions"><button class="btn btn-sm" onclick="stepA(1)">← Back</button><button class="btn btn-p" onclick="stepA(3)">See results →</button></div>`;
+  } else {
+    let t=calcScore(S.aScores.t),s=calcScore(S.aScores.s);
+    if(S.challenge==='pass')s=Math.min(10,s+1);
+    if(S.challenge==='fail')s=Math.max(0,s-1);
+    const c=Math.round((t*.4+s*.6)*10)/10;
+    const vCls=c>=7?'v-pass':c>=5?'v-warn':'v-fail';
+    const vMsg=c>=7?`Node complete at ${c.toFixed(1)}/10 — contributing to phase progress.`:c>=5?`Partial at ${c.toFixed(1)}/10 — foundation exists but gaps remain.`:`Not ready at ${c.toFixed(1)}/10 — needs more work before contributing to phase unlock.`;
+    const gaps=[];
+    if(t<6)gaps.push({t:'Theory gap',b:'Practice explaining without notes. Use spaced repetition and teach the concept out loud.'});
+    if(s<6)gaps.push({t:'Skill gap',b:'Run the timed challenge regularly until execution feels automatic. Log variants you struggled with.'});
+    if(t>=7&&s<t-2)gaps.push({t:'Theory–Skill imbalance',b:`Theory (${t}) is well ahead of skill (${s}). Shift from reading to doing.`});
+    if(S.challenge==='fail')gaps.push({t:'Challenge calibration',b:'Self-assessment may be inflated. Review your rubric answers.'});
+    if(!gaps.length)gaps.push({t:'No major gaps',b:'Scores balanced and above threshold. Reassess in 2–3 weeks.'});
+    body=`<div class="res-grid">
+      <div class="res-card"><div class="rc-n" style="color:#7F77DD">${t}</div><div class="rc-l">Theory /10</div></div>
+      <div class="res-card"><div class="rc-n" style="color:#1D9E75">${s}</div><div class="rc-l">Skill /10</div></div>
+      <div class="res-card"><div class="rc-n" style="color:#EF9F27">${c.toFixed(1)}</div><div class="rc-l">Combined /10</div></div>
+    </div>
+    <div class="live-sc">
+      <div class="prog-row" style="margin-bottom:5px"><span class="prog-lbl">Theory</span><div class="prog-bg"><div class="prog-fill pf-p" style="width:${t*10}%"></div></div><span class="prog-pct">${t}/10</span></div>
+      <div class="prog-row" style="margin-bottom:5px"><span class="prog-lbl">Skill</span><div class="prog-bg"><div class="prog-fill pf-t" style="width:${s*10}%"></div></div><span class="prog-pct">${s}/10</span></div>
+      <div class="prog-row"><span class="prog-lbl">Combined</span><div class="prog-bg"><div class="prog-fill pf-a" style="width:${c*10}%"></div></div><span class="prog-pct">${c.toFixed(1)}</span></div>
+    </div>
+    <div class="verdict ${vCls}" style="margin-top:10px">${vMsg}</div>
+    ${gaps.map(g=>`<div class="gap-card"><div class="gc-t">${g.t}</div><div class="gc-b">${g.b}</div></div>`).join('')}
+    <div class="formula">Formula: combined = (theory × 0.4) + (skill × 0.6). Node contributes when combined ≥ 5 and neither axis &lt; 3.</div>
+    <div class="actions"><button class="btn btn-sm" onclick="stepA(2)">← Revise</button><button class="btn btn-p" onclick="saveAssess(${t},${s},${c})">Save to tracker</button></div>`;
+  }
+  return stepNav+header+body;
+}
+
+function selC(axis,idx,val){S.aScores[axis][idx]=val;repaint();}
+function setC(r){S.challenge=r;repaint();}
+function stepA(n){S.assessStep=Math.max(0,Math.min(3,n));repaint();}
+function repaint(){document.getElementById('app').innerHTML=renderAssess();}
+
+async function saveAssess(t,s,c){
+  const field=getField(S.fieldId);if(!field)return;
+  const node=field.phases[S.nodeRef.phaseIdx].nodes[S.nodeRef.nodeIdx];
+  node.theory_score=t;node.skill_score=s;node.combined=c;
+  node.last_assessed=new Date().toISOString();
+  await saveData();
+  nav('field',{fieldId:S.fieldId});
+}
+
+// ── View: Add / Edit Field ──────────────────────────────────────────────────────
+function renderAdd(){
+  const df = S.draftField;
+  
+  let aiSection = '';
+  if (S.scaffolding) {
+    aiSection = `<div class="sc-status" style="margin-top:10px">${S.scaffoldMsg}</div>`;
+  } else {
+    aiSection = `
+      <div class="form-row" style="align-items:center;background:var(--bg2);padding:10px;border-radius:var(--r);margin-bottom:15px;">
+        <div style="font-size:12px;color:var(--text2);flex:1">Or, let AI generate a starting point:</div>
+        <div style="display:flex;gap:5px;flex:2">
+          <input id="ai-topic" class="form-input" placeholder="Topic (e.g. Neuroscience)" onkeydown="if(event.key==='Enter')doScaffold()">
+          <button class="btn btn-p btn-sm" onclick="doScaffold()" style="white-space:nowrap">AI Generate</button>
+        </div>
+      </div>
+    `;
+  }
+
+  const phasesHtml = df.phases.map((p, pi) => `
+    <div class="form-section">
+      <div class="form-section-head">
+        <span class="fsh-title">Phase ${pi + 1}</span>
+        <button class="btn btn-sm btn-danger" onclick="draftRmPhase(${pi})">Remove Phase</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Phase Name</label><input class="form-input" value="${p.name||''}" oninput="draftUpdPhase(${pi},'name',this.value)" placeholder="e.g. Fundamentals"></div>
+        <div class="form-group"><label class="form-label">Duration</label><input class="form-input" value="${p.duration_estimate||''}" oninput="draftUpdPhase(${pi},'duration_estimate',this.value)" placeholder="e.g. 2-3 weeks"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label class="form-label">Focus / Goal</label><input class="form-input" value="${p.focus||''}" oninput="draftUpdPhase(${pi},'focus',this.value)" placeholder="Main objective of this phase"></div>
+        <div class="form-group"><label class="form-label">Unlock At (%)</label><input type="number" class="form-input" value="${p.unlock_threshold||80}" oninput="draftUpdPhase(${pi},'unlock_threshold',parseInt(this.value)||80)"></div>
+      </div>
+      
+      <div style="margin-top:16px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px">Nodes in Phase ${pi + 1}</div>
+        ${(p.nodes||[]).map((n, ni) => `
+          <div class="sub-node-section">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:500;color:var(--text2)">Node ${pi + 1}.${ni + 1}</span>
+              <span style="font-size:10px;cursor:pointer;color:var(--red)" onclick="draftRmNode(${pi},${ni})">Remove Node</span>
+            </div>
+            <div class="form-row" style="margin-bottom:8px">
+              <div class="form-group" style="flex:2"><input class="form-input" value="${n.name||''}" oninput="draftUpdNode(${pi},${ni},'name',this.value)" placeholder="Node Name"></div>
+              <div class="form-group">
+                <select class="form-select" onchange="draftUpdNode(${pi},${ni},'axis',this.value)">
+                  <option value="theory" ${n.axis==='theory'?'selected':''}>Theory-heavy</option>
+                  <option value="skill" ${n.axis==='skill'?'selected':''}>Skill-heavy</option>
+                  <option value="mixed" ${n.axis==='mixed'?'selected':''}>Mixed</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:8px"><input class="form-input" value="${n.description||''}" oninput="draftUpdNode(${pi},${ni},'description',this.value)" placeholder="Description (1 sentence)"></div>
+            <div class="form-row" style="margin-bottom:0">
+              <div class="form-group" style="flex:3"><input class="form-input" value="${n.challenge||''}" oninput="draftUpdNode(${pi},${ni},'challenge',this.value)" placeholder="Challenge (Optional, e.g. Build X in 20m)"></div>
+              <div class="form-group"><input type="number" class="form-input" value="${n.challenge_time_min||15}" oninput="draftUpdNode(${pi},${ni},'challenge_time_min',parseInt(this.value)||15)" placeholder="Mins"></div>
+            </div>
+          </div>
+        `).join('')}
+        <button class="btn btn-sm" onclick="draftAddNode(${pi})" style="margin-top:4px">+ Add Node to Phase ${pi + 1}</button>
+      </div>
+    </div>
+  `).join('');
+
+  return `<div class="nav">
+    <button class="btn-back" onclick="nav('home')">← Back / Cancel</button>
+    <span class="nav-title">Create Curriculum Field</span>
+    <button class="btn btn-p btn-sm" onclick="saveDraftField()">Save Field</button>
+  </div>
+  
+  ${aiSection}
+  
+  <div class="form-section">
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">Field Name</label>
+        <input class="form-input" value="${df.field}" oninput="S.draftField.field=this.value" placeholder="e.g. Advanced TypeScript">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Domain Type</label>
+        <select class="form-select" onchange="S.draftField.domain=this.value">
+          <option value="theory" ${df.domain==='theory'?'selected':''}>Theory-heavy</option>
+          <option value="skill" ${df.domain==='skill'?'selected':''}>Skill-heavy</option>
+          <option value="mixed" ${df.domain==='mixed'?'selected':''}>Mixed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Short Description</label>
+      <input class="form-input" value="${df.description}" oninput="S.draftField.description=this.value" placeholder="What is the overall goal of tracking this field?">
+    </div>
+  </div>
+
+  <div style="margin-top:20px;margin-bottom:12px;font-size:15px;font-weight:500;color:var(--text);display:flex;justify-content:space-between;align-items:center">
+    Phases & Curriculum
+    <button class="btn btn-sm" onclick="draftAddPhase()">+ Add Phase</button>
+  </div>
+  
+  ${phasesHtml.length ? phasesHtml : '<div class="empty" style="padding:2rem 1rem"><h3>No phases yet</h3><p>Add a phase to start building your curriculum.</p></div>'}
+  
+  <div class="actions" style="margin-top:2rem">
+    <button class="btn" onclick="nav('home')">Cancel</button>
+    <button class="btn btn-p" onclick="saveDraftField()">Save Field</button>
+  </div>
+  `;
+}
+
+// ── Draft Form Handlers ──────────────────────────────────────────
+function draftAddPhase() {
+  S.draftField.phases.push({
+    phase: S.draftField.phases.length + 1,
+    name: '', focus: '', duration_estimate: '', level_cap: 10, unlock_threshold: 80,
+    nodes: []
+  });
+  render();
+}
+function draftRmPhase(pi) {
+  S.draftField.phases.splice(pi, 1);
+  S.draftField.phases.forEach((p, i) => p.phase = i + 1);
+  render();
+}
+function draftUpdPhase(pi, key, val) { S.draftField.phases[pi][key] = val; }
+
+function draftAddNode(pi) {
+  S.draftField.phases[pi].nodes.push({
+    name: '', description: '', axis: 'mixed', challenge: '', challenge_time_min: 15
+  });
+  render();
+}
+function draftRmNode(pi, ni) {
+  S.draftField.phases[pi].nodes.splice(ni, 1);
+  render();
+}
+function draftUpdNode(pi, ni, key, val) { S.draftField.phases[pi].nodes[ni][key] = val; }
+
+// ── Generate & Save ──────────────────────────────────────────────
+async function doScaffold(){
+  const el=document.getElementById('ai-topic');
+  const field=el?.value.trim();if(!field)return;
+  S.scaffolding=true;S.scaffoldMsg='Analysing field structure and generating nodes...';
+  render();
+  const msgs=['Analysing field structure...','Mapping knowledge phases...','Writing nodes and challenges...'];
+  let mi=0;
+  const tick=setInterval(()=>{mi=(mi+1)%msgs.length;if(S.scaffolding)S.scaffoldMsg=msgs[mi];render();},2000);
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1500,
+        system:`You are an expert curriculum architect. Output ONLY valid JSON — no markdown, no preamble, no backticks.
+
+Schema: {"field":"string","domain":"theory|skill|mixed","description":"1 sentence","phases":[{"phase":1,"name":"2-3 word string","focus":"one sentence","level_cap":10,"unlock_threshold":80,"duration_estimate":"e.g. 3–5 weeks","nodes":[{"name":"string","description":"1 sentence","axis":"theory|skill|mixed","challenge":"concrete timed task completable offline in 10–20 min without notes, or empty string if theory-only","challenge_time_min":15}]}]}
+
+Rules: 3–4 phases. Phase 1: 3-4 nodes, mostly theory. Phase 2: 4-5 nodes, balanced. Phase 3+: 4-5 nodes, skill-heavy. Challenges must be specific offline tasks not "study X". Return ONLY valid JSON.`,
+        messages:[{role:'user',content:`Map out a curriculum for: ${field}`}]
+      })
+    });
+    clearInterval(tick);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const generatedField = JSON.parse(txt.replace(/```json|```/g,'').trim());
+    S.draftField = generatedField;
+    S.scaffoldMsg='';
+  }catch(e){clearInterval(tick);S.scaffoldMsg='Error: '+e.message;alert(S.scaffoldMsg);}
+  S.scaffolding=false;render();
+}
+
+async function saveDraftField(){
+  const df = S.draftField;
+  if (!df.field.trim()) { alert("Please enter a Field Name."); return; }
+  if (!df.phases.length) { alert("Please add at least one phase."); return; }
+  
+  // Format the draft field into a proper field object ready for tracking
+  const fieldToSave = {
+    id: uid(),
+    field: df.field.trim(),
+    domain: df.domain,
+    description: df.description.trim(),
+    createdAt: new Date().toISOString(),
+    phases: df.phases.map(p => ({
+      ...p,
+      nodes: (p.nodes || []).map(n => ({
+        ...n,
+        id: uid(),
+        theory_score: null,
+        skill_score: null,
+        combined: null,
+        last_assessed: null
+      }))
+    }))
+  };
+
+  S.data.fields.push(fieldToSave);
+  await saveData();
+  nav('field', { fieldId: fieldToSave.id });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  const app=document.getElementById('app');
+  switch(S.view){
+    case'home':app.innerHTML=renderHome();break;
+    case'field':app.innerHTML=renderField();break;
+    case'assess':app.innerHTML=renderAssess();break;
+    case'add':app.innerHTML=renderAdd();break;
+    default:app.innerHTML=renderHome();
+  }
+}
+
+loadData().then(()=>render());
+</script>
+</body>
+</html>

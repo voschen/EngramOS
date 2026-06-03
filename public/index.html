@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expertise Tracker</title>
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+<!-- The app mounts here -->
+<div class="app" id="app">
+  <div style="padding:2rem;text-align:center;color:var(--text3);font-size:14px">Loading Tracker...</div>
+</div>
+
+<!-- Hidden file input for importing fields -->
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="app.js?v=3"></script>
+</body>
+</html>
